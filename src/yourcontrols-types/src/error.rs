@@ -2,6 +2,8 @@ use std::{fmt::Display, io};
 
 use crossbeam_channel::TryRecvError;
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 #[derive(Debug)]
 pub enum Error {
     // Net
@@ -30,7 +32,11 @@ pub enum Error {
     NetDecodeError(rmp_serde::decode::Error),
     NetEncodeError(rmp_serde::encode::Error),
 
+    // Gauge
+    VariableInitializeError,
+
     // Misc
+    None,
     NotProcessed,
 }
 
@@ -72,7 +78,8 @@ impl Display for Error {
             Error::NetEncodeError(e) => {
                 write!(f, "Could not encode MessagePack data! Reason: {}", e)
             }
-
+            Error::VariableInitializeError => write!(f, "Var could not be initialized."),
+            Error::None => write!(f, "No value returned."),
             Error::NotProcessed => write!(f, "Not processed."),
         }
     }

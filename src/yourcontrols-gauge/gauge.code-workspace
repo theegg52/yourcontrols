@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\yourcontrols-types"
+		}
+	],
+	"settings": {
+		"rust-analyzer.cargo.target": "wasm32-wasi"
+	}
+}

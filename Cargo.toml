@@ -5,6 +5,7 @@ members = [
     "src/yourcontrols-types",
     "src/yourcontrols-hoster",
     "src/yourcontrols-gauge",
+    "src/yourcontrols-definitions",
 ]
 
 default-members = ["src/yourcontrols"]

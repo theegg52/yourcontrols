@@ -35,6 +35,9 @@ pub enum Error {
 
     // Gauge
     VariableInitializeError,
+    // Gauge Scripting
+    RhaiParse(rhai::ParseError),
+    RhaiError(Box<rhai::EvalAltResult>),
 
     // Misc
     None,
@@ -83,6 +86,8 @@ impl Display for Error {
                 write!(f, "Could not encode MessagePack data! Reason: {}", e)
             }
             Error::VariableInitializeError => write!(f, "Var could not be initialized."),
+            Error::RhaiParse(e) => write!(f, "Could not parse RHAI script: {}", e),
+            Error::RhaiError(e) => write!(f, "Could not run RHAI script: {}", e),
             Error::None => write!(f, "No value returned."),
             Error::NotProcessed => write!(f, "Not processed."),
         }
@@ -116,5 +121,17 @@ impl From<rmp_serde::encode::Error> for Error {
 impl From<crossbeam_channel::TryRecvError> for Error {
     fn from(e: crossbeam_channel::TryRecvError) -> Self {
         Error::ReadTimeout(e)
+    }
+}
+
+impl From<rhai::ParseError> for Error {
+    fn from(e: rhai::ParseError) -> Self {
+        Error::RhaiParse(e)
+    }
+}
+
+impl From<Box<rhai::EvalAltResult>> for Error {
+    fn from(e: Box<rhai::EvalAltResult>) -> Self {
+        Error::RhaiError(e)
     }
 }

@@ -1,42 +1,40 @@
 use std::collections::HashMap;
 
-use crate::{DatumKey, DatumValue, InterpolationType, Time};
+use crate::{DatumKey, DatumValue, InterpolationType, Time, VarId};
+use rhai::Dynamic;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
-#[serde(tag = "type")]
-pub enum MappingType<P>
-where
-    P: Eq,
-{
-    ToggleSwitch {
-        event_name: String,
-        off_event_name: Option<String>,
-        #[serde(default)]
-        switch_on: bool,
-        event_param: Option<P>,
-    },
-    NumSet {
-        event_name: String,
-        swap_event_name: Option<String>,
-        multiply_by: Option<DatumValue>,
-        add_by: Option<DatumValue>,
-        event_param: Option<P>,
-    },
-    NumIncrement {
-        up_event_name: String,
-        down_event_name: String,
-        increment_amount: DatumValue,
-        #[serde(default)]
-        pass_difference: bool,
-    },
-    NumDigitSet {
-        inc_events: Vec<String>,
-        dec_events: Vec<String>,
-    },
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EventMessage {
+    pub name: String,
+    pub index: Option<u32>,
+    pub index_reversed: bool,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ScriptMessage {
+    pub lines: Vec<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum SettableMessage {
+    Event(EventMessage),
+    Var(VarType),
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct MappingArgsMessage {
+    pub script_id: VarId,
+    pub vars: Vec<VarId>,
+    pub sets: Vec<VarId>,
+    pub params: Vec<Dynamic>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum MappingType<M> {
     Event,
     Var,
-    // TODO: ProgramAction,
+    Script(M),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -73,11 +71,8 @@ pub enum SyncPermission {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ConditionMessage {
-    #[serde(default)]
-    pub use_var: bool,
-    pub equals: Option<DatumValue>,
-    pub less_than: Option<DatumValue>,
-    pub greater_than: Option<DatumValue>,
+    pub script_name: String,
+    pub options: Vec<Dynamic>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -88,16 +83,16 @@ pub struct InterpolateMessage {
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct DatumMessage {
-    pub var: Option<VarType>,
-    pub watch_event: Option<String>,       // Event name,
+    pub var: Option<VarId>,
+    pub watch_event: Option<String>,
     pub watch_period: Option<WatchPeriod>, // Watch variable
     pub condition: Option<ConditionMessage>,
     pub interpolate: Option<InterpolateMessage>,
-    pub mapping: Option<MappingType<u32>>,
+    pub mapping: Option<MappingType<MappingArgsMessage>>,
     pub sync_permission: Option<SyncPermission>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ChangedDatum {
     pub key: DatumKey,
     pub value: DatumValue,
@@ -108,6 +103,15 @@ pub enum Payloads {
     // Transmit to Sim
     SetDatums {
         datums: Vec<DatumMessage>,
+    },
+    SetVars {
+        vars: Vec<VarType>,
+    },
+    SetEvents {
+        events: Vec<EventMessage>,
+    },
+    SetScripts {
+        scripts: Vec<ScriptMessage>,
     },
 
     WatchVariable {},

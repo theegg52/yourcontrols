@@ -182,6 +182,7 @@ fn main() {
     let mut ready_to_process_data = false;
 
     let mut connection_time = None;
+    let mut exception_count = 0;
 
     let mut config_to_load = String::new();
     // Helper closures
@@ -248,8 +249,15 @@ fn main() {
                         });
 
                         if data.dwException == 31 {
-                            // Client data area was not initialized by the gauge
-                            client.stop("Could not connect to the YourControls gauge. Do you have the community package installed correctly?".to_string());
+                            exception_count += 1;
+
+                            if exception_count > 6 {
+                                // Exception 31 might come up once but if it comes up multiple times that's a clear indication that gauge wasn't loaded in
+                                // Client data area was not initialized by the gauge
+                                client.stop("Could not connect to the YourControls gauge. Do you have the community package installed correctly?".to_string());
+                                exception_count = 0;
+                            }
+
                             break;
                         }
                     }

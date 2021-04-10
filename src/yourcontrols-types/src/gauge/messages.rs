@@ -4,25 +4,26 @@ use crate::{DatumKey, DatumValue, InterpolationType, Time, VarId};
 use rhai::Dynamic;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Hash, PartialEq, Eq)]
 pub struct EventMessage {
     pub name: String,
-    pub index: Option<u32>,
-    pub index_reversed: bool,
+    pub param: Option<String>,
+    #[serde(default)]
+    pub param_reversed: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ScriptMessage {
     pub lines: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub enum SettableMessage {
     Event(EventMessage),
     Var(VarType),
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct MappingArgsMessage {
     pub script_id: VarId,
     pub vars: Vec<VarId>,
@@ -30,14 +31,14 @@ pub struct MappingArgsMessage {
     pub params: Vec<Dynamic>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum MappingType<M> {
     Event,
     Var,
     Script(M),
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Hash, Eq)]
 #[serde(untagged)]
 pub enum VarType {
     WithUnits {
@@ -69,7 +70,7 @@ pub enum SyncPermission {
     Init,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ConditionMessage {
     pub script_name: String,
     pub options: Vec<Dynamic>,
@@ -92,7 +93,7 @@ pub struct DatumMessage {
     pub sync_permission: Option<SyncPermission>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ChangedDatum {
     pub key: DatumKey,
     pub value: DatumValue,
